@@ -1,64 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { Session } from './path/to/Session';
-import { Wallet } from './path/to/Wallet';
-import { Token } from './path/to/Token';
-import { v4 as uuidValidate } from 'uuid';
 import { WalletIdDto } from './dto/wallet-get.dto';
+import { Order, SortBy } from '../common/types/types';
+import { Session } from '../infra/database/session';
 
 @Injectable()
 export class WalletService {
-  private readonly _session: Session;
-  private readonly _wallet: Wallet;
+  constructor(
+    //     this._session = new Session();
+    //     this._wallet = new Wallet(this._session);
+    //     this._event = new Event(this._session);
+    private readonly _session: Session,
+  ) {}
 
-  constructor() {
-    this._session = new Session();
-    this._wallet = new Wallet(this._session);
-  }
-
-  async getSubWallets(id: string) {
-    return this._wallet.getSubWallets(id);
-  }
-
-  async getById(id: string) {
-    return this._wallet.getById(id);
-  }
-
-  async getByName(name: string) {
-    return this._wallet.getByName(name);
-  }
-
-  async getWallet(walletId: string) {
+  async getWallet(walletId: WalletIdDto) {
     return this._wallet.getWallet(walletId);
-  }
-
-  async getByIdOrName(idOrName: string) {
-    let wallet;
-    if (uuidValidate(idOrName)) {
-      wallet = await this.getById(idOrName);
-    } else {
-      wallet = await this.getByName(idOrName);
-    }
-    return wallet;
-  }
-
-  async createWallet(loggedInWalletId: string, wallet: any) {
-    try {
-      await this._session.beginTransaction();
-
-      const addedWallet = await this._wallet.createWallet(
-        loggedInWalletId,
-        wallet,
-      );
-
-      await this._session.commitTransaction();
-
-      return { wallet: addedWallet.name, id: addedWallet.id };
-    } catch (e) {
-      if (this._session.isTransactionInProgress()) {
-        await this._session.rollbackTransaction();
-      }
-      throw e;
-    }
   }
 
   // TODO: use DTO or create interface
@@ -66,6 +21,10 @@ export class WalletService {
     id: WalletIdDto,
     limitOptions: any,
     name: string,
+    sort_by: SortBy,
+    order: Order,
+    created_at_start_date: string,
+    created_at_end_date: string,
     getTokenCount = true,
     getWalletCount = true,
   ) {
@@ -75,6 +34,10 @@ export class WalletService {
         id,
         limitOptions,
         name,
+        sort_by,
+        order,
+        created_at_start_date,
+        created_at_end_date,
         getWalletCount,
       );
       return {
@@ -88,10 +51,15 @@ export class WalletService {
         count,
       };
     }
-    return this._wallet.getAllWallets(id, limitOptions, name, getWalletCount);
-  }
-
-  async hasControlOver(parentId: string, childId: string) {
-    return this._wallet.hasControlOver(parentId, childId);
+    return this._wallet.getAllWallets(
+      id,
+      limitOptions,
+      name,
+      sort_by,
+      order,
+      created_at_start_date,
+      created_at_end_date,
+      getWalletCount,
+    );
   }
 }

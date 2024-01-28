@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Query, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { WalletGetQueryDto, WalletIdDto } from './dto/wallet-get.dto';
 import { WalletService } from './wallet.service';
 import { WalletPostDto } from './dto/wallet-post.dto';
@@ -9,11 +18,21 @@ export class WalletController {
 
   @Get()
   async walletGet(
-    @Query() query: WalletGetQueryDto,
+    @Query() walletDto: WalletGetQueryDto,
     @Body('wallet_id') wallet_id: WalletIdDto,
   ) {
-    const { name, limit, offset } = query;
-    console.log(wallet_id);
+    /** Контролер готовий */
+    // TODO: перевірити
+    const {
+      name,
+      limit,
+      offset,
+      sort_by,
+      order,
+      created_at_start_date,
+      created_at_end_date,
+    } = walletDto;
+
     return this.walletService.getAllWallets(
       wallet_id,
       {
@@ -21,8 +40,13 @@ export class WalletController {
         offset,
       },
       name,
+      sort_by,
+      order,
+      created_at_start_date,
+      created_at_end_date,
     );
 
+    /** оригінал респонсу: */
     //     res.status(200).json({
     //     total: count,
     //     query: { ...validatedQuery, limit, offset },
@@ -30,14 +54,23 @@ export class WalletController {
     //   });
   }
 
-  async walletPost(@Body() body: WalletPostDto, @Req() request: WalletIdDto) {
-    return this.walletService.createWallet(request.wallet_id, body);
+  // @Post('/:wallet_id')
+  // async walletPost(@Req() req, @Res() res: Response, @Body() walletDto) {
+  //   console.log(`===`)
+  //   console.log(req.wallet_id)
+  //   console.log(walletDto)
+  //   console.log(`===`)
+  //
+  //   return {
+  //     'ol': 'ok'
+  //   }
+  // }
 
-    //     res.status(201).json({
-    //     id,
-    //     wallet,
-    //   });
+  @Get(':wallet_id')
+  async walletSingleGet(@Param('wallet_id') walletId: WalletIdDto) {
+    return this.walletService.getWallet(walletId);
+
+    /** оригінал респонсу: */
+    // res.status(200).send(wallet);
   }
-
-  async walletSingleGet() {}
 }

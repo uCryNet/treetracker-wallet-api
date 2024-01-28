@@ -4,9 +4,10 @@ import {
   IsOptional,
   Min,
   Max,
-  ValidateNested,
+  IsISO8601,
+  IsEnum,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Order, SortBy } from '../../common/types/types';
 
 export class WalletGetQueryDto {
   @IsInt({ message: 'limit can only be non-negative integer' })
@@ -21,19 +22,23 @@ export class WalletGetQueryDto {
   @IsString()
   @IsOptional()
   name?: string;
+
+  @IsEnum(['created_at', 'name'])
+  sort_by: SortBy = 'created_at';
+
+  @IsEnum(['asc', 'desc'])
+  order: Order = 'desc';
+
+  @IsOptional()
+  @IsISO8601()
+  created_at_start_date: string;
+
+  @IsOptional()
+  @IsISO8601()
+  created_at_end_date: string;
 }
 
 export class WalletIdDto {
   @IsString()
   wallet_id: string;
-}
-
-export class CombinedWalletDto {
-  @ValidateNested()
-  @Type(() => WalletGetQueryDto)
-  query: WalletGetQueryDto;
-
-  @ValidateNested()
-  @Type(() => WalletIdDto)
-  id: WalletIdDto;
 }
